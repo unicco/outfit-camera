@@ -1,0 +1,20 @@
+# Development and testing dependencies
+#
+# 版は `==` で固定する（`>=` に戻さない）。
+# 上限なしの `>=` だと CI が実行時期で違う版を引き、lint ルールの拡大を無警告で拾って
+# 全 PR が止まる。
+# ピン値の基準は **CI で稼働実績のある版**。requirements-api.txt と違いこのファイルは本番
+# VPS の動作に関与しない（テストを実行するのは CI）ため、本番 venv に残っている古い dev
+# ツール（pytest 7.4.3 / pytest-cov 4.1.0 等）には合わせない。
+# 更新は Dependabot の PR 経由でレビューして上げる。
+httpx==0.28.1
+pytest==9.1.1
+pytest-xdist==3.8.0
+pytest-cov==7.1.0
+pytest-asyncio==1.4.0
+black==26.5.1
+# ruff は pyproject.toml の [tool.ruff.lint] select と対で管理する。select を明示したので
+# 既定ルールの拡大には影響されないが、版の更新自体は Dependabot PR でレビューする。
+# 上限（`<0.16`）は置かない。ピンで足りるうえ、上限は「いつか上げると外れる」。
+ruff==0.16.3
+mypy==2.3.1

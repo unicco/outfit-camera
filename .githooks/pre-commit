@@ -1,0 +1,25 @@
+#!/bin/sh
+# pre-commit: scan staged changes for secrets via gitleaks.
+# Setup: git config core.hooksPath .githooks
+# Bypass (intentional): GITLEAKS_SKIP=1 git commit ...
+
+if [ -n "$GITLEAKS_SKIP" ]; then
+  exit 0
+fi
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "[pre-commit] gitleaks not installed; skipping secret scan." >&2
+  echo "[pre-commit] Install: brew install gitleaks" >&2
+  exit 0
+fi
+
+# -v が無いと "leaks found: N" の件数しか出ず、どのファイルのどのルールか分からない
+# （下のメッセージの "see above" が嘘になる）。--redact で値自体はマスクされる
+gitleaks git --staged --redact --no-banner -v
+status=$?
+if [ $status -ne 0 ]; then
+  echo "" >&2
+  echo "[pre-commit] gitleaks found secrets in staged changes (see above)." >&2
+  echo "[pre-commit] To bypass after manual review: GITLEAKS_SKIP=1 git commit ..." >&2
+fi
+exit $status

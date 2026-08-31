@@ -1,0 +1,38 @@
+[Unit]
+Description=Cloudflare Tunnel for Coordinate Recorder Manager
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=cloudflared
+Group=cloudflared
+ExecStart=/usr/local/bin/cloudflared tunnel --config /etc/cloudflared/config.yml run
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cloudflared
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# セキュリティ設定
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+# プロセス設定
+LimitNOFILE=65536
+UMask=077
+
+# 環境変数
+Environment=HOME=/var/lib/cloudflared
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+
+[Install]
+WantedBy=multi-user.target

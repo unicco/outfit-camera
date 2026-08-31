@@ -1,0 +1,158 @@
+{
+  "2025-06-17": {
+    "captured": true,
+    "captures": [
+      {
+        "photo_id": "8438b3f9-4b64-4c34-9b3a-57aa4d0d2805",
+        "timestamp": "2025-06-17T06:12:57.966637",
+        "metadata": {
+          "record_id": "be552959-ed25-4064-a5e7-280ca5c84a8a",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "88ca3472-23c5-460d-9f07-910cdba70f16",
+        "timestamp": "2025-06-17T06:13:00.240664",
+        "metadata": {
+          "record_id": "6458df87-229e-4e83-8b0f-e2d25c9104f4",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "805e314d-5323-42b0-a1fe-ba3f25be0364",
+        "timestamp": "2025-06-17T06:13:09.707831",
+        "metadata": {
+          "record_id": "990c59ba-4b11-4ebf-951a-eae8523819c1",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "6c4a4371-d0cf-45ed-889a-17f0e0c73c52",
+        "timestamp": "2025-06-17T06:21:48.887414",
+        "metadata": {
+          "record_id": "f51c1d77-85e1-4201-9b1a-fce2a2907773",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "222f8aa6-4dc3-43c4-840d-d8b98d0a58f5",
+        "timestamp": "2025-06-17T06:59:46.047454",
+        "metadata": {
+          "record_id": "f4ebb14a-c78e-4421-b494-95b3e10a4026",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "e4575e54-d60d-412a-b39e-c7b762deddf1",
+        "timestamp": "2025-06-17T07:05:19.491608",
+        "metadata": {
+          "record_id": "c9efb334-e559-4ffb-8adb-b5a4dae0c0ae",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "1aa90649-b0fe-4c4e-8c29-1f244c804d1e",
+        "timestamp": "2025-06-17T07:06:15.623712",
+        "metadata": {
+          "record_id": "d0324ac4-a314-4722-b84a-5dd5aba94c0b",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "f8311293-c2df-493a-b929-bd749b870197",
+        "timestamp": "2025-06-17T07:10:56.039812",
+        "metadata": {
+          "record_id": "2b4cb1d2-3974-4c70-b4bc-862ce9cb9bc7",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "034e27bb-5f17-4603-9431-cf89fffab4b6",
+        "timestamp": "2025-06-17T14:37:55.290667",
+        "metadata": {
+          "record_id": "b31c7755-71bc-4445-9f8b-c76d8688d6e3",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "33c5f05c-92b9-40d1-b609-c2e2b1c4884d",
+        "timestamp": "2025-06-17T14:38:15.196506",
+        "metadata": {
+          "record_id": "073746a9-39a5-4fc3-9f6e-bd26fd6a1837",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "6b67ba11-eb51-4dd8-a621-f86d3a2ec534",
+        "timestamp": "2025-06-17T16:05:52.735619",
+        "metadata": {
+          "record_id": "4c9b5a8b-b0fb-45fb-b5af-db67a540f572",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "2da62d51-8c49-4066-827a-154548ec40e0",
+        "timestamp": "2025-06-17T16:06:27.851178",
+        "metadata": {
+          "record_id": "302758e4-b4e9-4f36-99e1-e562c8211f79",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "61767391-95d8-49a2-9d4d-5472784aa5e4",
+        "timestamp": "2025-06-17T16:30:47.239298",
+        "metadata": {
+          "record_id": "f086526a-856d-441f-bf70-5fa91a6f10d6",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      }
+    ],
+    "last_capture": "2025-06-17T16:30:47.239298"
+  },
+  "2025-06-18": {
+    "captured": true,
+    "captures": [
+      {
+        "photo_id": "64476370-9ed6-46e4-8b8f-168beffd584a",
+        "timestamp": "2025-06-18T02:06:57.039869",
+        "metadata": {
+          "record_id": "0aebb46c-b41c-4782-842e-157e16f1004a",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "cec270ab-0032-47dd-90fd-088e87609305",
+        "timestamp": "2025-06-18T07:34:30.104523",
+        "metadata": {
+          "record_id": "fa234d99-27fe-4628-b291-15de35fcb31a",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      },
+      {
+        "photo_id": "1be0c096-fe34-436b-a44c-da2f99a2d663",
+        "timestamp": "2025-06-18T07:38:13.412513",
+        "metadata": {
+          "record_id": "65610868-031b-4a51-b830-791624e7741b",
+          "person_detected": true,
+          "source": "simulation"
+        }
+      }
+    ],
+    "last_capture": "2025-06-18T07:38:13.412513"
+  }
+}

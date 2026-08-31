@@ -1,0 +1,34 @@
+[Unit]
+Description=Camera and PIR Sensor Monitor
+Documentation=https://github.com/unicco/coordinate-recorder
+After=coordinate-camera.service
+Requires=coordinate-camera.service
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/coordinate-recorder
+
+# 環境変数
+Environment="PYTHONUNBUFFERED=1"
+
+# PIR モニタースクリプトを実行
+ExecStart=/home/pi/coordinate-recorder/scripts/monitor-pir-health.sh
+
+# 再起動ポリシー
+Restart=always
+RestartSec=30
+
+# プロセス管理
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# ログ設定
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=camera-pir-monitor
+
+[Install]
+WantedBy=multi-user.target

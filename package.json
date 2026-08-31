@@ -1,0 +1,23 @@
+{
+  "name": "coordinate-recorder-developer",
+  "description": "今日なに着た？ - AI カメラによる毎日の服装記録",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs-check": "echo 'TypeScript documentation check - add tsc --noEmit when TypeScript project is configured'",
+    "lint-docs": "ruff check --select D --diff",
+    "docs-fix": "ruff check --select D --fix",
+    "checks": "bash scripts/dev/run-checks.sh",
+    "checks:auto": "bash scripts/dev/run-checks.sh --auto-scope"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

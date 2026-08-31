@@ -1,0 +1,20 @@
+[Unit]
+Description=Coordinate Recorder API Service
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/services/coordinate-recorder
+EnvironmentFile=-%h/services/coordinate-recorder/.env
+Environment="PYTHONPATH=%h/services/coordinate-recorder/api:%h/services/coordinate-recorder/src:%h/services/coordinate-recorder"
+Environment="PYTHONUNBUFFERED=1"
+ExecStart=%h/services/coordinate-recorder/.venv/bin/python -m uvicorn api.app.main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=60
+TimeoutStopSec=30
+MemoryMax=1G
+
+[Install]
+WantedBy=default.target

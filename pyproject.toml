@@ -1,0 +1,153 @@
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov-branch",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# coverage の計測対象は下の include リスト（unit テストで安定検証できるコア領域）に
+# 限定する。source を設定すると coverage は include を黙って無視する（include-ignored）
+# ため、source は指定しない。CI は `pytest --cov`（パス無し）で起動し、この include
+# スコープで fail_under=70 を判定する。
+[tool.coverage.run]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__init__.py",
+    "*/migrations/*",
+    "*/venv/*",
+    "*/.venv/*",
+]
+include = [
+    # 現状のユニットテストで安定して検証できるコア領域のみをカバレッジ対象に限定
+    "api/app/config.py",
+    "api/app/core/config.py",
+    "api/app/co_occurrence_models.py",
+    "api/app/models.py",
+    "api/app/outfit_models.py",
+    "api/app/path_setup.py",
+    "api/app/middleware/cors.py",
+    "api/app/routers/api_versions.py",
+    "api/app/routers/health.py",
+    "api/app/schemas/base.py",
+    "api/app/search_log_models.py",
+    "api/app/storage/base_storage.py",
+    "api/app/utils/image_utils.py",
+    "src/coordinate_recorder/daily_capture_tracker.py",
+    "src/coordinate_recorder/date_utils.py",
+    "src/coordinate_recorder/exceptions/base.py",
+    "src/coordinate_recorder/logging_config.py",
+]
+
+[tool.coverage.report]
+# Target: Backend 75%, Overall 70%
+precision = 2
+show_missing = true
+skip_covered = false
+fail_under = 70  # 最低ライン設定
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+# mypy 設定はこの pyproject.toml に一本化（旧: ルート mypy.ini・api/.mypy.ini・api/mypy.ini・
+# api/pyproject.toml・api/api/.mypy_ignored_files に散在。2026-07 掃除）。
+# CI と `npm run checks` の `mypy src api` が同じ設定を読む。
+[tool.mypy]
+# 本番 VPS / CI と同じ 3.12。`mypy src api` は camera/（Pi の 3.11）を見ない。
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src:$MYPY_CONFIG_FILE_DIR/api"
+
+[[tool.mypy.overrides]]
+module = [
+    "mediapipe.*",
+    "numpy.*",
+    "cv2.*",
+    "sklearn.*",
+    "mobile_sam.*",
+    "google.*",
+    "google_auth_oauthlib.*",
+    "googleapiclient.*",
+    "requests.*",
+    "playwright.*",
+    "joblib.*",
+    "picamera2.*",
+    "libcamera.*",
+    "app.ai_detection_api",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "backend.app.automation",
+    "backend.app.main",
+    "backend.app.models",
+    "backend.app.repositories",
+    "backend.tests.*",
+    "app.*",
+    "coordinate_recorder.*",
+    "api.scripts.*",
+    "scripts.*",
+    "alembic.*",
+    "api.alembic.*",
+]
+ignore_errors = true
+
+[tool.ruff]
+line-length = 88
+# 本番 VPS / CI と同じ 3.12（mypy の python_version と揃える）。現在の select は
+# E4/E7/E9/F だけで target-version に依存しないため、py311 → py312 で指摘は変わらない
+# 下の 413 ルールへ移行するときに初めて差が出る。
+target-version = "py312"
+
+[tool.ruff.lint]
+# 有効ルールは必ずここで明示する（既定に委ねない）。ruff 0.16.0（2026-07-23）で既定の
+# 有効ルールが 59 → 413 に拡大し、コード無変更のまま lint が 1633 errors で停止して
+# CI が止まった。select = ["E4", "E7", "E9", "F"] は 0.16 以前の既定と
+# 同じ集合。
+# requirements-dev.txt 側にも ruff の上限を置いているが、ルールセットの正はこちらに持たせる。
+# 上限だけでは、将来 upper bound を上げた瞬間に同じ事故が再発する。
+# 413 ルールへの移行は別途判断する（1633 件のうち 1087 件は --fix 可能）。
+# ⚠️ この設定は api/ には自動では効かない。ruff は対象ファイルに最も近い設定だけを読むので、
+# api/.ruff.toml から `extend = "../pyproject.toml"` で繋いでいる。api/ 配下に別の設定を
+# 足すときも同じように繋ぐこと（繋がないとそこだけ 0.16 の既定に戻る）。
+# S（flake8-bandit）は bandit 本体の代わり。bandit は依存も CI ステップも版管理も増えるが、
+# ruff は既に pin と Dependabot 追従があるので S を足すだけで済む。
+# ⚠️ 抑制は `# noqa: SXXX` で書く。bandit 方言の `# nosec` は ruff が読まない。
+select = ["E4", "E7", "E9", "F", "S"]
+# S603/S607 は subprocess 呼び出しのほぼ全部に出る。実測 22 件すべてが引数リスト形式で
+# shell を使っておらず、残しても無情報な noqa が 22 個並ぶだけで判別能力が上がらない。
+# ⚠️ `shell=True` の検出は S602/S605 が担う。この 2 つを切っても shell 系は有効のまま。
+# S607（実行ファイルの部分パス）は Pi と VPS で絶対パスが割れるため、名前解決に任せる。
+ignore = ["S603", "S607"]
+per-file-ignores = { "tests/**/*.py" = ["E402"] }

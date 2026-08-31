@@ -1,0 +1,7 @@
+# api/ 配下は最も近いこの設定だけが使われ、ルート pyproject.toml の [tool.ruff] は読まれない。
+# extend で繋がないと select = ["E4", "E7", "E9", "F"] が api/ に効かず、ruff 0.16.0 の既定
+# （413 ルール）がそのまま当たって lint が 1254 errors で止まる（の再発）。
+extend = "../pyproject.toml"
+
+[lint.per-file-ignores]
+"app/api.py" = ["B008"]  # FastAPI Depends pattern is correct

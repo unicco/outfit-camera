@@ -1,0 +1,15 @@
+{
+    "_instructions": "ワードローブマッチング評価用の正解データ。テスト画像に対応するワードローブアイテム ID を記述する。",
+    "_format": {
+        "ファイル名.png": {
+            "correct_item_id": 123,
+            "category": "tops",
+            "notes": "補足情報（任意）"
+        }
+    },
+    "_example_image_001.png": {
+        "correct_item_id": 42,
+        "category": "outerwear",
+        "notes": "ネイビージャケット"
+    }
+}

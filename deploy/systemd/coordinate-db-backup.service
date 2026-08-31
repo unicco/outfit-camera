@@ -1,0 +1,7 @@
+[Unit]
+Description=Coordinate Recorder DB Backup
+After=postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/services/coordinate-recorder/deploy/scripts/db-backup.sh

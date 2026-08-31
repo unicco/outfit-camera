@@ -1,0 +1,33 @@
+# Coordinate Recorder — Tailscale 内部アクセス用リバースプロキシ
+# Deploy: sudo cp deploy/caddy/coordinate-tailscale.caddy /etc/caddy/sites-enabled/
+#
+# Pi キオスクブラウザ（Tailscale 経由）から VPS の UI/API にアクセスするための設定。
+# Tailscale CGNAT (100.64.0.0/10) 内のデバイスのみ到達可能。
+# カメラサービスは Pi (100.64.0.11:8001) へプロキシ。
+
+:3000 {
+	# API
+	handle /api/* {
+		reverse_proxy localhost:8000
+	}
+	handle /health {
+		reverse_proxy localhost:8000
+	}
+
+	# Camera (Pi)
+	# X-Camera-Token を注入して Pi 側の認証を通す（詳細は coordinate.caddy と
+	# deploy/docs/camera-service-auth.md を参照）。値は環境変数 CAMERA_API_TOKEN。
+	handle /camera/* {
+		uri strip_prefix /camera
+		reverse_proxy 100.64.0.11:8001 {
+			header_up X-Camera-Token {env.CAMERA_API_TOKEN}
+		}
+	}
+
+	# UI (static files)
+	handle {
+		root * /home/deploy/services/coordinate-recorder/ui/dist
+		try_files {path} /index.html
+		file_server
+	}
+}

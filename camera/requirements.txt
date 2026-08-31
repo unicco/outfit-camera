@@ -1,0 +1,29 @@
+# Camera service dependencies — **ローカル開発の venv 用**
+#
+# ⚠️ このファイルは本番の玄関 Pi には反映されない。Pi の camera サービスは
+# `coordinate-camera.service` の ExecStart が `/usr/bin/python3`（システム Python）で、
+# `deploy/setup-pi.sh` に `pip install` が無い。**本番の正典は camera/pi-user-site.lock**で、
+# 版は一致しない（Dependabot がこのファイルだけを上げるため）。
+#
+# 読むのは `scripts/setup/setup-venv.sh` / `scripts/launch/common/python-setup.sh` と、
+# CI/CD から呼ばれていない孤立スクリプト `scripts/setup/setup-venv-deployment.sh`。
+#
+# 詳細は docs/deployment/dependency-management.md。
+
+# 中身は camera/ のコードが実際に import するものに合わせる。
+# 追加・削除するときはコードの import を根拠にすること。
+# 版の下限は**ローカル開発の Python 3.12**（本番 Pi の 3.11 はこのファイルの制約ではない）。
+fastapi==0.141.1
+uvicorn[standard]==0.52.3
+opencv-python==4.14.0.94
+numpy==2.5.2
+pillow==12.3.0
+piexif==1.1.3
+requests==2.34.2
+psutil==7.2.2  # camera_service.py と camera_health_monitor.py が使用
+
+# apt が提供するため pip では入れない。
+# pip 版を入れると ~/.local に二重に入り、apt 版と競合する（cv2 の多重競合と同じ事故）:
+#   picamera2 / libcamera → python3-picamera2 / python3-libcamera（システム Python 専用）
+#   gpiozero / lgpio      → python3-gpiozero / python3-lgpio
+#                            （camera service は GPIOZERO_PIN_FACTORY=lgpio で PIR を読む）

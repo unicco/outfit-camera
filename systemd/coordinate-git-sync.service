@@ -1,0 +1,22 @@
+[Unit]
+Description=Sync coordinate-recorder to origin/main on boot (event-driven Pi)
+Documentation=https://github.com/unicco/coordinate-recorder
+After=network-online.target
+Wants=network-online.target
+# アプリ起動前に最新化する（A 案）。順序依存のみ＝本サービスが失敗してもアプリは起動する。
+Before=coordinate-camera.service coordinate-kiosk.service camera-pir-monitor.service
+
+[Service]
+Type=oneshot
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/coordinate-recorder
+ExecStart=/home/pi/coordinate-recorder/scripts/git-sync-on-boot.sh
+# スクリプト内の timeout で実質 ~30s 上限。万一固まっても 60s で打ち切り、boot を救う。
+TimeoutStartSec=60
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=coordinate-git-sync
+
+[Install]
+WantedBy=graphical.target

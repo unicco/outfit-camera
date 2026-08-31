@@ -1,0 +1,110 @@
+# Backend dependencies for coordinate-recorder
+# Issue #40: Database and automation features
+#
+# 版は `==` で固定する（`>=` に戻さない）。
+# このファイルは CI（ci-lint-check / test / dependency-check）と本番 VPS
+# （deploy/setup-vps.sh の `pip install -r`）の両方が読む。`>=` だと解決結果が実行時期で
+# 変わり、CI と本番がメジャー単位でズレる（＝CI green が本番の動作を保証しなくなる）。
+# 本番 venv は「既存が条件を満たせば据え置く」pip の挙動で古い版が残り続ける一方、
+# venv を作り直した瞬間に全パッケージが最新へ飛ぶ。この落差が無検証の本番メジャー更新になる。
+#
+# ピン値の基準:
+#   1. 原則は本番 VPS venv の実測値（`pip freeze`）。本番と一致させることで、この
+#      ファイルの変更が起動する自動デプロイが pip の no-op で安全に着地する。
+#   2. 例外として、pip-audit が既知脆弱性を報告するパッケージは修正版に上げる。ただし
+#      「その時点の最新」ではなく **CI で稼働実績のある版** を採る（下の ★ 印）。
+#      本番実測値をそのまま採ると、既知脆弱性を意図的に固定することになるため。
+#      推移的依存でもここに書く。書かないと pip の「既存が条件を満たせば据え置く」挙動で
+#      本番だけ脆弱な版が残り続ける（CI は無ピンで最新を解決するので気づけない）。
+# 更新は Dependabot の PR 経由で 1 つずつレビューして上げる（major は個別 PR になる）。
+
+# Core web framework
+# ★ fastapi と starlette はセットで CI 実績版にする。starlette 0.52.x には既知脆弱性が
+#    7 件あり修正版は 1.x のみ（PYSEC-2026-161 / 248 / 249 / 2280 / 2281）。
+#    片方だけ動かすと誰も検証していない組み合わせになるため、Test Suite が通っている
+#    組み合わせで揃える。
+fastapi==0.141.1
+uvicorn[standard]==0.52.3
+click==8.4.2  # ★ uvicorn の推移的依存。本番の 8.3.1 は PYSEC-2026-2132（修正版 8.3.3）
+# starlette は fastapi の推移的依存だが、あえて直接依存として固定する。
+# fastapi をピンしても starlette は fastapi の許容範囲内で pip が最新を解決するため、
+# ここに書かないと CI と本番でメジャーがズレる。
+# アプリコードからの starlette 直接 import は 0 件（fastapi 経由のみ）。
+starlette==1.6.0
+
+# Database
+sqlalchemy==2.0.52
+psycopg[binary]==3.3.4  # PostgreSQL adapter
+alembic==1.19.1  # Database migrations
+mako==1.4.1  # ★ alembic の推移的依存。本番の 1.3.10 は PYSEC-2026-2617（修正版 1.3.12）
+
+# Computer vision and AI
+opencv-python==4.14.0.94
+# ★ pillow 12.1.1 には既知脆弱性が 24 件（修正版 12.2.0 / 12.3.0）。うち FITS/PDF の
+#    展開爆弾（PYSEC-2026-2250 / 3495 等）は、/detect-file が read_upload_capped で
+#    圧縮前バイト数だけを見てフォーマット未検証のまま Image.open() に渡す実装
+#    （api/app/routers/ai_detection.py）と組み合わさると上限をすり抜けて踏みうる。
+pillow==12.3.0
+piexif==1.1.3  # EXIF メタデータ編集に使用
+
+# AI/ML libraries
+scikit-learn==1.9.0  # For KMeans clustering in color analysis
+numpy==2.5.2
+scikit-image==0.26.0  # Attribute detection uses skimage.feature/local_binary_pattern
+
+# NOTE: torch, transformers, peft, torchvision removed
+# Reason: Using Jina API instead of local embedding generation
+
+# HTTP requests and file handling
+idna==3.18  # ★ 本番の 3.11 は PYSEC-2026-215（修正版 3.15）
+requests==2.34.2  # ★ 本番の 2.32.5 は PYSEC-2026-2275（修正版 2.33.0）
+urllib3==2.7.0  # ★ requests の推移的依存。本番の 2.6.3 は PYSEC-2026-141 / 142（修正版 2.7.0）
+httpx==0.28.1
+python-multipart==0.0.32
+python-dateutil==2.9.0.post0  # ICS の RRULE 展開（朝ブリーフ「今日会う人」）
+
+# Environment management
+python-dotenv==1.2.3
+
+# Scheduling and automation
+schedule==1.2.2
+
+# NOTE: pytest / pytest-asyncio / pytest-cov は requirements-dev.txt に集約
+# NOTE: requirements と本番 venv のズレは deploy-vps.yml の venv drift チェックが検出する。
+#       掃除は `scripts/maintenance/clean-vps-venv.sh --apply`
+
+# Data validation
+pydantic==2.13.4
+pydantic-settings==2.15.0  # ★ 本番の 2.13.1 は GHSA-4xgf-cpjx-pc3j（修正版 2.14.2）
+
+# Scientific computing
+# コードからの直接 import は無い。scikit-image が要求する（scipy>=1.11.4）ため、packaging と
+# 同じ理屈で直接依存として固定する。
+scipy==1.18.0
+
+# Google Photos API integration
+google-api-python-client==2.198.0
+google-auth-httplib2==0.4.1
+google-auth-oauthlib==1.4.0
+httplib2==0.32.0  # ★ google-api-python-client の推移的依存。本番の 0.31.2 は PYSEC-2026-3444（修正版 0.32.0）
+# cryptography と pyasn1 は google-auth の推移的依存。google-auth 自体はここに書かれておらず
+# （google-api-python-client 経由）、ピンできる場所がここしかない。
+cryptography==50.0.0  # ★ 本番の 49.0.0 は PYSEC-2026-3552（修正版 50.0.0）
+pyasn1==0.6.4  # ★ 本番の 0.6.2 は PYSEC-2026-2263 / 3455 / 3456 / 3457（修正版 0.6.4）
+# piexif は「Computer vision and AI」ブロックに集約（Batch upload の EXIF 書き換えでも使用）
+
+# Google Cloud Storage
+google-cloud-storage==3.13.1
+
+# NOTE: Roboflow, MobileSAM, torch removed - VLM-only detection pipeline
+
+# Utilities
+# packaging は scikit-image → lazy-loader の推移的依存として入っているが、あえて直接依存として
+# 固定する（starlette と同じ理屈）。scripts/maintenance/check_venv_drift.py が requirements の
+# 依存閉包を計算するのに使っており、間接依存のままだと scikit-image を外した瞬間に venv の
+# drift 検査が黙って動かなくなるため。
+packaging==26.3
+typing-extensions==4.16.0
+tqdm==4.70.0  # Progress bars for maintenance scripts
+psutil==7.2.2  # System and process utilities
+pytz==2026.3.post1  # Timezone handling for JST

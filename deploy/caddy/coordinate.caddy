@@ -1,0 +1,60 @@
+# Coordinate Recorder — Caddy reverse proxy
+# Deploy: sudo cp deploy/caddy/coordinate.caddy /etc/caddy/sites-enabled/coordinate.caddy
+#
+# Cloudflare Access で認証済のリクエストのみ到達する前提。
+# Origin Certificate: Cloudflare Access が ACME challenge をブロックするため明示指定。
+
+coordinate.unicco.app {
+	# Layer 2（多層防御）: CF per-hostname Authenticated Origin Pulls。
+	# mTLS の client_auth は /etc/caddy/aop.d/*.caddy から import する（下記）。
+	# このディレクトリが空なら証明書のみ（enforcement なし）で完全に無害なため、
+	# auto-deploy（setup-vps.sh）が本ファイルを再配置しても公開は断たれない。
+	# CF で AOP を有効化し CA を配置してから、人間が /etc/caddy/aop.d/client-auth.caddy
+	# を作成して初めて mTLS が enforce される（存在ゲート方式）。
+	# 手順・ロールバック: deploy/docs/cloudflare-authenticated-origin-pulls.md
+	tls /etc/caddy/certs/origin.pem /etc/caddy/certs/origin-key.pem {
+		import /etc/caddy/aop.d/*.caddy
+	}
+
+	# API
+	handle /api/* {
+		reverse_proxy localhost:8000
+	}
+
+	# Camera (Pi via Tailscale)
+	# X-Camera-Token を注入して Pi 側の認証を通す（ブラウザの <img> ストリームは
+	# ヘッダを付けられないため、ここで代理注入する）。値は Caddy の環境変数
+	# CAMERA_API_TOKEN（systemd drop-in で設定）。詳細 deploy/docs/camera-service-auth.md。
+	#
+	# ⚠️ 重要: このトークンは「リクエストが信頼された Caddy を経由したこと」を Pi に
+	# 示すもので、エンドユーザー認証ではない。全クライアントに一律注入するため、
+	# リモート経路（coordinate.unicco.app）のユーザー認証は上流の Cloudflare Access が
+	# 全面的に担う（このファイル冒頭の前提）。Access が未適用だとトークン注入により
+	# 誰でもカメラに到達しうる。各 hostname への Access 適用は要人間確認
+	# （deploy/docs/cloudflare-ingress-firewall.md の「残タスク」）。オリジン側での
+	# 恒久的な経路認証（mTLS = Layer 2）は本ファイル冒頭の client_auth と
+	# deploy/docs/cloudflare-authenticated-origin-pulls.md を参照。
+	handle /camera/* {
+		uri strip_prefix /camera
+		reverse_proxy 100.64.0.11:8001 {
+			header_up X-Camera-Token {env.CAMERA_API_TOKEN}
+		}
+	}
+
+	handle /health {
+		reverse_proxy localhost:8000
+	}
+	handle /docs {
+		reverse_proxy localhost:8000
+	}
+	handle /openapi.json {
+		reverse_proxy localhost:8000
+	}
+
+	# UI (static files)
+	handle {
+		root * /home/deploy/services/coordinate-recorder/ui/dist
+		try_files {path} /index.html
+		file_server
+	}
+}

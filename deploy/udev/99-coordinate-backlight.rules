@@ -1,0 +1,11 @@
+# バックライトの bl_power を video グループ書き込み可にする
+#
+# Raspberry Pi OS 標準の /usr/lib/udev/rules.d/60-backlight.rules は brightness しか
+# 扱わない。bl_power が root 専用のままだと画面の電源制御（PIR 連動の消灯・
+# display-brightness.sh の power-on/power-off）が sudo なしでは動かない。
+#
+# sysfs の属性ファイルには MODE=/GROUP= が効かない（デバイスノード向けの指定なので）。
+# RUN+= で chgrp/chmod するのが backlight の定石。
+#
+# 配置は deploy/setup-pi.sh。手で置くと SD を作り直したときに失われる。
+SUBSYSTEM=="backlight", ACTION=="add", RUN+="/bin/chgrp video /sys/class/backlight/%k/bl_power", RUN+="/bin/chmod g+w /sys/class/backlight/%k/bl_power"

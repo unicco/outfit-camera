@@ -1,0 +1,1 @@
+export { FullBodyPhotoUpload } from './FullBodyPhotoUpload';

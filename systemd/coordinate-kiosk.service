@@ -1,0 +1,45 @@
+[Unit]
+Description=Coordinate Recorder Kiosk Browser Service
+Documentation=https://github.com/unicco/coordinate-recorder
+After=graphical.target network-online.target coordinate-camera.service
+Wants=network-online.target coordinate-camera.service
+Requires=graphical.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/coordinate-recorder
+
+# Wayland 環境変数（systemd 環境用）
+Environment="XDG_RUNTIME_DIR=/run/user/1000"
+Environment="WAYLAND_DISPLAY=wayland-0"
+# UI は VPS で配信。Tailscale 経由で直接アクセス（Cloudflare Access を回避）
+# brightness-control.conf の UI_URL が優先されるため、ここはフォールバック
+Environment="UI_URL=http://100.64.0.10:3000/touchscreen"
+
+# 追加の環境変数ファイル（存在する場合）
+EnvironmentFile=-/home/pi/coordinate-recorder/.env
+
+# Kiosk Display Manager を使用
+ExecStart=/home/pi/coordinate-recorder/scripts/kiosk-display-manager.sh start
+ExecStop=/home/pi/coordinate-recorder/scripts/kiosk-display-manager.sh stop
+ExecReload=/home/pi/coordinate-recorder/scripts/kiosk-display-manager.sh restart
+
+# 再起動ポリシー（より積極的に）
+Restart=always
+RestartSec=30
+StartLimitBurst=10
+StartLimitInterval=300
+
+# プロセス管理
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+# ログ設定
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=coordinate-kiosk
+
+[Install]
+WantedBy=graphical.target

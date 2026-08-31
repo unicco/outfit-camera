@@ -1,0 +1,178 @@
+# Environment files
+**/.env*
+!**/.env.template
+!**/.env.*.template
+!**/.env.example
+!**/.env.*.example
+!**/.env.production
+.envrc
+
+# Document maintenance temporary files
+docstring-issues.txt
+todos.txt
+changed_files.txt
+changed-files.txt
+.worktree-aliases
+*.pyc
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# Legacy infrastructure files (no longer used)
+# docker-compose.override.yml
+
+# Git worktrees (temporary development branches)
+worktrees/
+
+# Temporary directories
+temp/
+
+# Photos directory (captured images should not be committed)
+photos/
+
+# Exhibition directory (large assets, keep local only)
+# ⚠️ 先頭の / は外さない。無いと scripts/exhibition/ のコードまで巻き込み、
+# 新しいスクリプトが黙って commit されない（既存分は追跡済なので気づけない）
+/exhibition/
+*.jpg
+*.jpeg
+*.png
+*.bmp
+
+# Log files
+logs/
+*.log
+api/logs/
+
+# Generated nginx config files (use templates instead)
+config/nginx/*.conf
+!config/nginx/includes/*.conf
+!config/nginx/*.template.conf
+
+# Local data directories
+data/
+
+# GCS secrets and credentials
+secrets/
+gcs-service-account-key.json
+*-service-account-key.json
+*.json.bak
+
+# Deployment artifacts
+*.tar.gz
+
+# Deployment runtime files (環境固有の実行時ファイル)
+deployments/
+!deployments/.gitkeep
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# AI models and data
+models/*.pt
+models/*.pth
+models/*.onnx
+models/*.h5
+models/*.pb
+models/*.tflite
+wardrobe-data/*.json
+wardrobe-data/*.db
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-wal
+*.db-shm
+
+# Terraform artifacts
+**/.terraform/
+infrastructure/terraform/bin/
+
+# YOLO model files (auto-downloaded)
+yolov8*.pt
+api/yolov8*.pt
+src/coordinate_recorder/*.pt
+yolo*.pt
+
+# Poetry files (migrated to pip)
+poetry.lock
+**/poetry.lock
+# Removed to allow pytest configuration
+# pyproject.toml
+# **/pyproject.toml
+!**/setup.py
+
+# Legacy GCS key location
+gcs-key.json
+
+# Virtual environments
+.venvs/
+venv/
+env/
+.venv/
+.env/
+ENV/
+env.bak/
+venv.bak/
+pyvenv.cfg
+**/venv/
+**/env/
+**/.venv/
+# Explicitly ignore api/venv (was accidentally tracked)
+api/venv/
+
+# Node.js
+node_modules/
+
+# Process ID files
+*.pid
+.dev-pids
+.pid-registry
+
+# Test results
+test-results/
+**/test-results/
+videos/
+ui/.env.local
+.cache
+
+# Test outputs
+tests/segmentation_results/
+tests/test_images/*_masks.png
+tests/test_images/*_result.png
+tests/inner_layer_results/
+tests/complete_inner_results/
+tests/alternative_approaches/
+tests/*.png
+tests/*.jpg
+tests/backend/fixtures/segmentation/*.json
+tests/backend/reports/
+tests/backend/tools/.logs/
+
+# 開発時の一時ファイル (使い捨てテスト・デバッグ用)
+tmp_*
+tmp/
+temp_*
+*.tmp.*
+*.temp.*
+*.debug.log
+/.tmp/
+camera/venv
+api/venv
+
+# 起動時 git 同期の直近結果（Pi 上で生成）
+/.git-sync-status
+
+# 公開版では共通設定の雛形を追跡する（原本では .env* を無視している）
+!.env.common

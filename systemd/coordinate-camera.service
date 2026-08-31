@@ -1,0 +1,92 @@
+[Unit]
+Description=Coordinate Recorder Camera Service
+Documentation=https://github.com/unicco/coordinate-recorder
+After=network-online.target pipewire.service wireplumber.service
+Wants=network-online.target
+Requires=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/coordinate-recorder
+
+# 環境変数
+Environment="CAMERA_PORT=8001"
+Environment="CAMERA_MODE=hardware"
+Environment="PIR_ENABLED=true"
+Environment="PIR_GPIO_PIN=18"
+# PIR チューニング（の点灯不具合調査で確定）。コード既定（window=3/
+# timeout=30）だと検知が 6〜9 秒間隔で「3 秒に 2 回」を満たせず点灯しない/ムラ
+# が出る → 窓を 10 秒に広げ、消灯は 7 秒に短縮。device 側 `.env` が同名で上書き可
+# （現行 Pi は同値）。SD 再構築時でもこの既定が効くよう unit に焼き込む。
+Environment="PIR_DETECTION_THRESHOLD=2"
+Environment="PIR_DETECTION_WINDOW=10"
+Environment="PIR_INACTIVITY_TIMEOUT=7"
+Environment="PHOTOS_DIR=/home/pi/coordinate-recorder/photos"
+Environment="PYTHONUNBUFFERED=1"
+Environment="PYTHONPATH=/home/pi/coordinate-recorder/src:/home/pi/coordinate-recorder"
+Environment="GPIOZERO_PIN_FACTORY=lgpio"
+
+# 追加の環境変数ファイル（存在する場合）
+EnvironmentFile=-/home/pi/coordinate-recorder/.env
+
+# 起動安定化のための短い待機。実体のあるデバイス解放待ちは下の ExecStartPre が担うので、
+# ここは過剰なベタ待ちを避け 5 秒に短縮（旧値 30 秒。boot〜カメラ準備が ~40s→~16s に短縮、実機検証済）
+ExecStartPre=/bin/bash -c 'echo "Camera service initialization phase 1: brief settle..." | systemd-cat -t coordinate-camera -p info; sleep 5; echo "Phase 1 complete: settle finished" | systemd-cat -t coordinate-camera -p info'
+# pipewire のカメラデバイス解放まで待機
+ExecStartPre=/bin/bash -c 'echo "Waiting for pipewire camera device release..." | systemd-cat -t coordinate-camera -p info; for i in {1..10}; do if ! lsof /dev/video* 2>/dev/null | grep -v camera_service | grep -q .; then echo "Camera devices available" | systemd-cat -t coordinate-camera -p info; break; elif [ "$i" -eq 10 ]; then echo "Warning: Camera devices still in use, proceeding anyway" | systemd-cat -t coordinate-camera -p warning; else sleep 3; fi; done'
+
+# Picamera2 はシステムレベルでのみ利用可能なため、システム Python を使用
+# 注意: google-generativeai など一部のパッケージはシステムレベルでのインストールが必要
+# sudo pip3 install --break-system-packages google-generativeai
+# 依存関係のチェック（picamera2 と camera/requirements.txt のパッケージ）
+# Picamera2 依存チェック。以前は `python3 -c "...print(\"...\")"` としていたが、
+# systemd + bash の二重パースでネストした `\"` が壊れ、python に壊れた文字列が
+# 渡り毎起動で SyntaxError を吐いていた（かつ `| systemd-cat` で exit code が
+# マスクされ fail-fast も無効化）。ネスト引用符を排除し if で終了コードを見る形へ。
+ExecStartPre=/bin/bash -c 'echo "Camera service initialization phase 2: checking Picamera2 dependencies..." | systemd-cat -t coordinate-camera -p info; if /usr/bin/python3 -c "import picamera2"; then echo "Phase 2 complete: Picamera2 import successful" | systemd-cat -t coordinate-camera -p info; else echo "ERROR: Picamera2 not available in system Python" | systemd-cat -t coordinate-camera -p err; exit 1; fi'
+
+# システム Python を使用（Picamera2 アクセスに必要）
+# デバッグ出力を有効にして起動失敗の原因を特定
+# ヘルスモニターをバックグラウンドで並行実行
+ExecStart=/bin/bash -c 'echo "Camera service initialization phase 3: starting main service..." | systemd-cat -t coordinate-camera -p info; cd /home/pi/coordinate-recorder && { /home/pi/coordinate-recorder/scripts/monitor-camera-health.sh & /usr/bin/python3 -u camera/camera_service.py; } 2>&1 | systemd-cat -t coordinate-camera-debug'
+
+# 再起動ポリシー（ヘルスチェック対応で always に変更）
+Restart=always
+RestartSec=10
+StartLimitInterval=600
+StartLimitBurst=3
+
+
+# プロセス管理
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+TimeoutStartSec=120
+# カメラサービスのグレースフルシャットダウンに時間がかかることがあるため30秒に延長
+SendSIGKILL=yes
+
+# リソース制限
+MemoryMax=512M
+CPUQuota=80%
+
+# ログ設定
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=coordinate-camera
+
+# セキュリティ設定
+# NoNewPrivileges は false にする（true にしない）。idle auto-shutdown（#1544）は
+# `sudo shutdown -h now` で graceful halt するため、サービスからの sudo 権限昇格が必須。
+# true だと sudo が "no new privileges" で弾かれ halt できず、Pi が落ちない（で発覚）。
+# display brightness の sudo（sudoers NOPASSWD 済）も同じ理由で要昇格。
+# `NOPASSWD: ALL` を狭めない判断とその前提は deploy/docs/pi-sudo-policy.md。
+NoNewPrivileges=false
+PrivateTmp=true
+
+# GPIO アクセス用の追加グループ（Pi 5対応）
+SupplementaryGroups=gpio video dialout
+
+[Install]
+WantedBy=graphical.target

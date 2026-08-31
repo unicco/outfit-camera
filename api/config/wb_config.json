@@ -1,0 +1,16 @@
+{
+  "white_balance": {
+    "roi": [0.1, 0.1, 0.3, 0.3],
+    "fallback_lab_threshold": {
+      "l_min": 70,
+      "l_max": 100,
+      "a_max": 6,
+      "b_max": 6
+    }
+  },
+  "tone_adjustment": {
+    "saturation": 0.9,
+    "contrast": 1.05,
+    "brightness": 0.0
+  }
+}

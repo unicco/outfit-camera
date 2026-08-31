@@ -1,0 +1,16 @@
+[Unit]
+Description=Chromium Kiosk Mode
+After=graphical-session.target
+Wants=graphical-session.target
+
+[Service]
+Type=simple
+Environment="WAYLAND_DISPLAY=wayland-0"
+Environment="XDG_RUNTIME_DIR=/run/user/1000"
+ExecStartPre=/bin/sleep 10
+ExecStart=/usr/bin/chromium --kiosk --no-first-run --disable-infobars --disable-session-crashed-bubble --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows --disable-features=TranslateUI,VizDisplayCompositor --disable-dev-shm-usage --no-sandbox --enable-features=UseOzonePlatform --ozone-platform=wayland --disable-gpu-sandbox --disable-software-rasterizer --noerrdialogs --disable-translate --disable-restore-session-state --block-new-web-contents http://100.64.0.10:3000/touchscreen
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

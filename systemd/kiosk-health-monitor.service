@@ -1,0 +1,46 @@
+[Unit]
+Description=Kiosk Display Health Monitor
+Documentation=https://github.com/unicco/coordinate-recorder
+# graphical.target を明示的に After に入れる。coordinate-kiosk は
+# `After=graphical.target` / `Requires=graphical.target` を持つため、
+# `After=coordinate-kiosk.service` だけだと target → 本サービス → coordinate-kiosk
+# → graphical.target と閉路になり、systemd がどれかの start ジョブを消す。
+# graphical.target を明示すると coordinate-kiosk と同じ「target 到達後に起動」の
+# 形に揃い、閉路が解ける（実機の systemd-analyze verify で確認）。
+After=graphical.target coordinate-kiosk.service
+# Wants を使用することで、キオスクサービスの再起動時もヘルスモニターは動作し続ける
+# Requires だと監視対象の再起動時に監視サービス自体も停止してしまうため
+Wants=coordinate-kiosk.service
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/coordinate-recorder
+
+# coordinate-kiosk と同じ上書き経路を持たせる。片方だけが .env を読むと、
+# ブラウザが開く URL と監視が叩く URL がずれる
+EnvironmentFile=-/home/pi/coordinate-recorder/.env
+
+# 1分ごとにキオスクの状態を確認
+ExecStart=/home/pi/coordinate-recorder/systemd/scripts/kiosk-health-monitor.sh
+Restart=always
+RestartSec=60
+
+# ログ設定
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=kiosk-health-monitor
+
+[Install]
+# multi-user.target ではなく graphical.target。multi-user.target に付けると
+#   multi-user.target → kiosk-health-monitor → coordinate-kiosk
+#     → graphical.target → (systemd 既定の After) multi-user.target
+# で閉路になり、systemd が毎 boot でこのサービスの start ジョブを削除する。
+# 実機の journal に "Found ordering cycle on kiosk-health-monitor.service/start" が残り、
+# 2026-05-30 以降 boot では上がらず、deploy が setup-pi.sh を走らせた時だけ起動していた。
+#
+# ⚠️ WantedBy を移すだけでは直らない。graphical.target に移すと閉路の起点が変わるだけで、
+# 今度は coordinate-kiosk（Kiosk 本体）の start ジョブが消される。上の After に
+# graphical.target を明示することとセットで初めて解ける。
+WantedBy=graphical.target

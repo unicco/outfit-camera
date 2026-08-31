@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=480, initial-scale=1" />
+<title>玄関ディスプレイ デモ — 今朝のしたく</title>
+<style>
+  :root{ --ink:#1f2733; --sub:#5b6675; --line:#e7ebf1; --warn:#dc2626; --ok:#0e9f6e; --card:#ffffff; }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html,body{background:#0b0d10;}
+  body{display:flex; justify-content:center; font-family:-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif; color:var(--ink);}
+  .device{width:480px; min-height:854px; position:relative; overflow:hidden;
+    background:linear-gradient(180deg,#fdf2f0 0%,#eef4fb 46%,#e7eefb 100%);}
+  .screen{position:absolute; inset:0; display:flex; flex-direction:column; padding:28px 26px 26px;}
+  .hidden{display:none;}
+
+  .head{display:flex; align-items:center; justify-content:space-between;}
+  .date{font-size:38px; font-weight:800;}
+  .date small{font-size:22px; font-weight:700; color:var(--sub); margin-left:8px;}
+  .wx{display:flex; align-items:center; gap:12px;}
+  .wx .mark{font-size:46px; line-height:1;}
+  .wx .temp{text-align:right; line-height:1.05;}
+  .wx .temp .hi{font-size:24px; font-weight:800;}
+  .wx .temp .lo{font-size:15px; font-weight:700; color:#9aa6b6; display:block;}
+
+  /* 傘バナー（タイトルは「かさ」だけ） */
+  .umb{margin-top:16px; border-radius:20px; padding:15px 22px; display:flex; align-items:center; gap:18px;
+    background:linear-gradient(135deg,#fde8e8,#fdeeee); border:1px solid #f6cccc;}
+  .umb.dry{background:linear-gradient(135deg,#e8f6ef,#eefaf4); border-color:#bfe6d3;}
+  .umb .uic{font-size:50px; line-height:1;}
+  .umb .ut{flex:1;}
+  .umb .utitle{font-size:15px; font-weight:700; color:var(--sub);}
+  .umb .uval{font-size:30px; font-weight:900; margin-top:1px; color:var(--warn);}
+  .umb.dry .uval{color:var(--ok);}
+  .umb .unote{font-size:13px; color:var(--sub); margin-top:2px;}
+
+  /* コーディネート例 */
+  .outfit{margin-top:16px; flex:1; min-height:0; background:var(--card); border:1px solid var(--line);
+    border-radius:22px; padding:14px; display:flex; flex-direction:column; box-shadow:0 8px 22px rgba(31,39,51,.06);}
+  .cap{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .cap .t{font-size:18px; font-weight:800;}
+  .cap .chip{font-size:13px; font-weight:700; color:#2563eb; background:#eef1fd; padding:4px 12px; border-radius:999px;}
+
+  /* 全身写真：左右は同じ写真を拡大ぼかしで埋める */
+  .ph{flex:1; min-height:0; position:relative; overflow:hidden; border-radius:14px; background:#222;}
+  .ph .bg{position:absolute; inset:0; background-image:url(fullbody.jpg); background-size:cover;
+    background-position:center; filter:blur(26px) saturate(1.1); transform:scale(1.25);}
+  .ph .fg{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;}
+  .ph .fg img{max-width:100%; max-height:100%; object-fit:contain;}
+
+  /* 服アイテム（実際の正方形画像）を下に並べる */
+  .items{margin-top:12px; display:flex; gap:8px;}
+  .item{flex:1; min-width:0;}
+  .item .sq{aspect-ratio:1/1; border-radius:12px; border:1px solid var(--line); overflow:hidden; background:#fff;
+    box-shadow:0 2px 8px rgba(31,39,51,.06);}
+  .item .sq img{width:100%; height:100%; object-fit:contain;}
+  .item .name{margin-top:5px; font-size:11px; font-weight:700; color:var(--sub); text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .src{margin-top:9px; font-size:12px; color:#9aa6b6; text-align:right;}
+
+  .shoot{margin-top:16px; width:100%; border:none; border-radius:22px; padding:21px;
+    background:var(--ink); color:#fff; font-size:24px; font-weight:800; letter-spacing:2px; cursor:pointer;
+    box-shadow:0 10px 24px rgba(31,39,51,.22); transition:transform .12s ease;}
+  .shoot:active{transform:scale(.97);}
+  .demoLabel{position:absolute; bottom:8px; right:12px; font-size:10px; color:#9aa6b6;}
+
+  /* カメラ画面 */
+  .camwrap{position:absolute; inset:0; display:flex; flex-direction:column;}
+  .camview{flex:1; position:relative; background:
+    repeating-linear-gradient(45deg,#15181d,#15181d 18px,#171b21 18px,#171b21 36px);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;}
+  .silhouette{font-size:200px; opacity:.18;}
+  .count{position:absolute; font-size:160px; font-weight:800; color:#fff; text-shadow:0 4px 30px rgba(0,0,0,.5);}
+  .live{position:absolute; top:20px; left:20px; display:flex; align-items:center; gap:7px;
+    background:rgba(220,38,38,.92); color:#fff; padding:6px 12px; border-radius:999px; font-size:14px; font-weight:700;}
+  .live .dot{width:9px; height:9px; background:#fff; border-radius:50%; animation:blink 1s infinite;}
+  @keyframes blink{50%{opacity:.25}}
+  .badge{position:absolute; top:18px; right:18px; background:rgba(255,255,255,.12); color:#fff; font-size:11px; padding:5px 10px; border-radius:999px;}
+  .camtitle{position:absolute; bottom:120px; width:100%; text-align:center; font-size:20px; font-weight:700; color:#fff; opacity:.9;}
+  .cambar{padding:22px 26px 30px; display:flex; gap:14px; background:#0b0d10;}
+  .cambar button{flex:1; border:none; border-radius:18px; padding:18px; font-size:18px; font-weight:800; cursor:pointer;}
+  .back{background:#2a2f37; color:#fff;}
+  .save{background:#fff; color:#0b0d10;}
+</style>
+</head>
+<body>
+<div class="device">
+
+  <section class="screen" id="brief">
+    <div class="head">
+      <div class="date">6/5<small>金</small></div>
+      <div class="wx">
+        <div class="mark" id="wxmark">🌧️</div>
+        <div class="temp"><span class="hi">22°</span><span class="lo">14°</span></div>
+      </div>
+    </div>
+
+    <div class="umb" id="umb">
+      <div class="uic" id="umbIc">☂️</div>
+      <div class="ut">
+        <div class="utitle">かさ</div>
+        <div class="uval" id="umbVal">いる</div>
+        <div class="unote" id="umbNote">夕方から本降り（降水 70%）</div>
+      </div>
+    </div>
+
+    <div class="outfit">
+      <div class="cap">
+        <div class="t">コーディネート例</div>
+        <div class="chip">長袖シャツ ＋ コート</div>
+      </div>
+      <div class="ph">
+        <div class="bg"></div>
+        <div class="fg"><img src="fullbody.jpg" alt="コーディネート例" /></div>
+      </div>
+      <div class="items">
+        <div class="item"><div class="sq"><img src="item-top.jpg" alt="シャツ"></div><div class="name">シャツ</div></div>
+        <div class="item"><div class="sq"><img src="item-bottom.jpg" alt="パンツ"></div><div class="name">パンツ</div></div>
+        <div class="item"><div class="sq"><img src="item-outer.jpg" alt="コート"></div><div class="name">コート</div></div>
+        <div class="item"><div class="sq"><img src="item-shoes.jpg" alt="スニーカー"></div><div class="name">スニーカー</div></div>
+        <div class="item"><div class="sq"><img src="item-bag.jpg" alt="バッグ"></div><div class="name">バッグ</div></div>
+      </div>
+      <div class="src">気温が近い日の記録から（2026/04/09）</div>
+    </div>
+
+    <button class="shoot" onclick="goCamera()">撮影する</button>
+    <div class="demoLabel">DEMO ／ 服・写真は実データ、天気はダミー</div>
+  </section>
+
+  <section class="screen hidden" id="camera" style="padding:0;">
+    <div class="camwrap">
+      <div class="camview">
+        <div class="live"><span class="dot"></span>LIVE</div>
+        <div class="badge">CAMERA</div>
+        <div class="silhouette">🧍</div>
+        <div class="count" id="count"></div>
+        <div class="camtitle" id="camtitle">枠に全身が入るように立ってください</div>
+      </div>
+      <div class="cambar">
+        <button class="back" onclick="goBrief()">← もどる</button>
+        <button class="save" id="shootBtn" onclick="shoot()">撮影</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // ?weather=sunny で「傘いらない」版（タイトルは「かさ」のまま）
+  if (new URLSearchParams(location.search).get('weather') === 'sunny') {
+    document.getElementById('wxmark').textContent = '☀️';
+    document.querySelector('.wx .hi').textContent = '24°';
+    document.querySelector('.wx .lo').textContent = '15°';
+    document.getElementById('umb').classList.add('dry');
+    document.getElementById('umbIc').textContent = '🌂';
+    document.getElementById('umbVal').textContent = 'いらない';
+    document.getElementById('umbNote').textContent = '一日を通して晴れ（降水 10%）';
+  }
+  function goCamera(){ document.getElementById('brief').classList.add('hidden');
+    document.getElementById('camera').classList.remove('hidden'); resetCam(); }
+  function goBrief(){ document.getElementById('camera').classList.add('hidden');
+    document.getElementById('brief').classList.remove('hidden'); }
+  function resetCam(){ document.getElementById('count').textContent='';
+    document.getElementById('camtitle').textContent='枠に全身が入るように立ってください';
+    var b=document.getElementById('shootBtn'); b.textContent='撮影'; b.onclick=shoot; }
+  function shoot(){
+    var n=3, el=document.getElementById('count'), t=document.getElementById('camtitle');
+    t.textContent='まもなく撮影します'; el.textContent=n;
+    var iv=setInterval(function(){ n--; if(n>0){ el.textContent=n; } else {
+      clearInterval(iv); el.textContent='✓'; t.textContent='撮影しました';
+      var b=document.getElementById('shootBtn'); b.textContent='保存'; b.onclick=goBrief;
+    }}, 800);
+  }
+</script>
+</body>
+</html>

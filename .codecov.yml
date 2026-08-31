@@ -1,0 +1,91 @@
+# Codecov configuration
+# https://docs.codecov.io/docs/codecovyml-reference
+
+codecov:
+  require_ci_to_pass: yes
+  notify:
+    wait_for_ci: true
+
+coverage:
+  precision: 2
+  round: down
+  range: "70...100"
+
+  status:
+    project:
+      default:
+        # 全体のカバレッジ設定
+        target: 70%
+        threshold: 1%
+        base: auto
+        if_not_found: success
+        if_ci_failed: error
+        only_pulls: false
+
+      backend:
+        # バックエンドのカバレッジ設定
+        target: 75%
+        threshold: 1%
+        flags:
+          - backend
+        paths:
+          - api/
+          - src/
+          - camera/
+
+      frontend:
+        # フロントエンドのカバレッジ設定
+        target: 60%
+        threshold: 1%
+        flags:
+          - frontend
+        paths:
+          - ui/src/
+
+    patch:
+      default:
+        # 新規・変更コードのカバレッジ要求
+        target: 80%
+        threshold: 1%
+        base: auto
+
+# カバレッジレポートのフラグ設定
+flags:
+  backend:
+    paths:
+      - api/
+      - src/
+      - camera/
+    carryforward: true
+
+  frontend:
+    paths:
+      - ui/src/
+    carryforward: true
+
+# コメント設定
+comment:
+  layout: "reach,diff,flags,tree,betaprofiling"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+
+# ファイルの無視設定
+ignore:
+  - "**/tests/**"
+  - "**/test_*.py"
+  - "**/__tests__/**"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  - "**/migrations/**"
+  - "**/node_modules/**"
+  - "**/venv/**"
+  - "**/.venv/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/*.config.js"
+  - "**/*.config.ts"
+  - "**/setup.py"
