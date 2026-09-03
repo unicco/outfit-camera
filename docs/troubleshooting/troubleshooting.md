@@ -21,7 +21,7 @@
 **問題**:
 
 ```
-Error: Browser is already in use for /Users/unicco/Library/Caches/ms-playwright/mcp-chrome-profile
+Error: Browser is already in use for $HOME/Library/Caches/ms-playwright/mcp-chrome-profile
 ```
 
 **原因**: 前回のセッションのブラウザプロセスが残存
@@ -410,7 +410,7 @@ export BACKEND_LOG_DIR=./logs
 
 ```bash
 # 正しい写真ディレクトリパスを設定
-export PHOTOS_DIR=/Users/unicco/repos/coordinate-recorder/photos
+export PHOTOS_DIR="$PWD/photos"
 ```
 
 #### Address already in use
@@ -673,7 +673,7 @@ curl -X POST http://localhost:8000/api/v2/ai/detect \
 
    ```bash
    # api/.env.local の PYTHONPATH を確認・更新
-   PYTHONPATH=/Users/unicco/repos/coordinate-recorder/src:/Users/unicco/repos/coordinate-recorder
+   PYTHONPATH=./src:.
    ```
 
 2. **開発環境起動スクリプトの使用**:

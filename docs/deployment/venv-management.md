@@ -11,7 +11,7 @@
 1. **共有ディレクトリ**: 仮想環境はリポジトリの `.venvs/` に保存されます
 
    ```
-   /Users/unicco/repos/coordinate-recorder/.venvs/
+   coordinate-recorder/.venvs/
    ├── api-server-{hash}/
    ├── camera-server-{hash}/
    └── ui-server-{hash}/

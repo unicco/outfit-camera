@@ -5,6 +5,9 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 # Colors for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -16,11 +19,11 @@ echo -e "${BLUE}🔍 Checking shared virtual environment health...${NC}\n"
 
 # Check environment variables
 echo -e "${BLUE}1. Environment Variables:${NC}"
-if [ -n "$VENV_CACHE_DIR" ]; then
+if [ -n "${VENV_CACHE_DIR:-}" ]; then
     echo -e "   ${GREEN}✅ VENV_CACHE_DIR: $VENV_CACHE_DIR${NC}"
 else
     echo -e "   ${YELLOW}⚠️  VENV_CACHE_DIR not set. Using default.${NC}"
-    VENV_CACHE_DIR="/Users/unicco/repos/coordinate-recorder/.venvs"
+    VENV_CACHE_DIR="$REPO_ROOT/.venvs"
 fi
 
 # Check shared venv directory
@@ -28,7 +31,7 @@ echo -e "\n${BLUE}2. Shared venv Directory:${NC}"
 if [ -d "$VENV_CACHE_DIR" ]; then
     echo -e "   ${GREEN}✅ Directory exists: $VENV_CACHE_DIR${NC}"
     echo -e "   ${BLUE}Contents:${NC}"
-    ls -la "$VENV_CACHE_DIR" | grep -E "api|camera|ui" | while read line; do
+    ls -la "$VENV_CACHE_DIR" | grep -E "api|camera|ui" | while read -r line; do
         echo "      $line"
     done
 else
